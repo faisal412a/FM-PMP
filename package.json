@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node scripts/prepare-standalone.mjs",
     "start": "node scripts/ensure-db.mjs && HOSTNAME=0.0.0.0 node .next/standalone/server.js",
     "db:seed": "node scripts/init-db.mjs",
     "lint": "next lint"
