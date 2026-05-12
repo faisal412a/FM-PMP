@@ -3,6 +3,13 @@ import { json, requireUser } from "@/lib/api";
 import { logActivity, row, rows, run } from "@/lib/db";
 import { refreshPaymentStatuses } from "@/lib/calculations";
 
+function dbPaymentStatus(status?: string) {
+  if (status === "Due") return "Pending";
+  if (status === "Partial Paid") return "Partially Paid";
+  if (status === "Delayed") return "Overdue";
+  return status || "Pending";
+}
+
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = requireUser(request, "payment:write");
   if ("error" in auth) return auth.error;
@@ -32,7 +39,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       body.payment_date || null,
       paid,
       balance,
-      body.status || "Pending",
+      dbPaymentStatus(body.status),
       body.remarks || ""
     ]
   );
@@ -62,7 +69,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       body.payment_date || null,
       paid,
       Math.max(0, amount - paid),
-      body.status || "Pending",
+      dbPaymentStatus(body.status),
       body.remarks || "",
       body.id,
       projectId

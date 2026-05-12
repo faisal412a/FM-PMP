@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import Badge from "@/components/Badge";
+import DocumentUploadPanel from "@/components/DocumentUploadPanel";
 import EvaluationForm from "@/components/EvaluationForm";
 import PaymentEditor from "@/components/PaymentEditor";
 import PhaseEditor from "@/components/PhaseEditor";
 import ProjectForm from "@/components/ProjectForm";
+import QuotePoInvoiceEditor from "@/components/QuotePoInvoiceEditor";
 import { money } from "@/lib/format";
 
 const tabs = ["Overview", "Quote & PO", "Payment Schedule", "Progress Tracker", "Documents", "Supplier Evaluation", "Activity Log"];
@@ -57,10 +59,7 @@ export default function ProjectDetailPage() {
       ) : null}
 
       {tab === "Quote & PO" ? (
-        <div className="grid two">
-          <section className="panel"><h3>Quote Reference</h3><p><strong>Number:</strong> {project.quote?.quote_number}</p><p><strong>Date:</strong> {project.quote?.quote_date}</p><p><strong>Amount:</strong> {money(project.quote?.quote_amount)}</p><p><strong>File:</strong> {project.quote?.quote_file}</p></section>
-          <section className="panel"><h3>PO Reference</h3><p><strong>Number:</strong> {project.po?.po_number}</p><p><strong>Date:</strong> {project.po?.po_date}</p><p><strong>Amount:</strong> {money(project.po?.po_amount)}</p><p><strong>File:</strong> {project.po?.po_file}</p></section>
-        </div>
+        <QuotePoInvoiceEditor project={project} onRefresh={load} />
       ) : null}
 
       {tab === "Payment Schedule" ? <PaymentEditor project={project} onRefresh={load} /> : null}
@@ -68,13 +67,7 @@ export default function ProjectDetailPage() {
       {tab === "Supplier Evaluation" ? <EvaluationForm project={project} onRefresh={load} /> : null}
 
       {tab === "Documents" ? (
-        <section className="panel table-wrap">
-          <table><thead><tr><th>Type</th><th>File</th><th>Path</th><th>Uploaded</th></tr></thead>
-            <tbody>
-              {project.documents.length ? project.documents.map((doc: any) => <tr key={doc.id}><td>{doc.document_type}</td><td>{doc.file_name}</td><td>{doc.file_path}</td><td>{doc.uploaded_at}</td></tr>) : <tr><td colSpan={4}>No documents uploaded yet. Quote, PO, and phase proof file references are stored on their module tabs.</td></tr>}
-            </tbody>
-          </table>
-        </section>
+        <DocumentUploadPanel project={project} onRefresh={load} />
       ) : null}
 
       {tab === "Activity Log" ? (
