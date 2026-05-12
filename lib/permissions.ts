@@ -3,7 +3,7 @@ import type { RoleName } from "./types";
 const permissions: Record<RoleName, string[]> = {
   Admin: ["*"],
   "Data Entry": ["project:read", "project:write", "progress:write", "document:write", "report:read"],
-  "Project Finance": ["project:read", "payment:write", "finance:read", "report:read"],
+  "Project Finance": ["project:read", "payment:write", "document:write", "finance:read", "report:read"],
   Management: ["report:read", "project:read", "finance:read"]
 };
 

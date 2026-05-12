@@ -1,8 +1,8 @@
 import Database from "better-sqlite3";
 import path from "node:path";
 import fs from "node:fs";
+import { dataDir } from "./storage";
 
-const dataDir = process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(process.cwd(), "data");
 const dbPath = path.join(dataDir, "pm.sqlite");
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 

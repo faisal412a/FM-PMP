@@ -1,7 +1,7 @@
 export function money(value: number | null | undefined) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-SA", {
     style: "currency",
-    currency: "USD",
+    currency: "SAR",
     maximumFractionDigits: 0
   }).format(Number(value || 0));
 }

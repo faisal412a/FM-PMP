@@ -22,8 +22,8 @@ export function refreshPaymentStatuses(projectId?: number) {
 export function refreshPhaseDelays(projectId?: number) {
   const scope = projectId ? "where project_id = ?" : "";
   const params = projectId ? [projectId] : [];
-  const phases = rows<{ id: number; planned_completion_date: string | null; status: string }>(
-    `select id, planned_completion_date, status from project_phases ${scope}`,
+  const phases = rows<{ id: number; planned_completion_date: string | null; actual_completion_date: string | null; status: string }>(
+    `select id, planned_completion_date, actual_completion_date, status from project_phases ${scope}`,
     params
   );
   const today = new Date();
@@ -31,12 +31,20 @@ export function refreshPhaseDelays(projectId?: number) {
   phases.forEach((phase) => {
     let delay = 0;
     let status = phase.status;
+    if (phase.planned_completion_date) {
+      const planned = new Date(phase.planned_completion_date).getTime();
+      const actual = rowActualCompletion(phase as any);
+      delay = Math.max(0, Math.ceil(((actual ?? today.getTime()) - planned) / 86400000));
+    }
     if (phase.planned_completion_date && phase.status !== "Completed") {
-      delay = Math.max(0, Math.ceil((today.getTime() - new Date(phase.planned_completion_date).getTime()) / 86400000));
       if (delay > 0) status = "Delayed";
     }
     run("update project_phases set delay_days = ?, status = ? where id = ?", [delay, status, phase.id]);
   });
+}
+
+function rowActualCompletion(phase: { actual_completion_date?: string | null }) {
+  return phase.actual_completion_date ? new Date(phase.actual_completion_date).getTime() : null;
 }
 
 export function projectSummary(projectId: number) {
