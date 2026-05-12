@@ -19,14 +19,6 @@ export default function ProjectForm({ initial, onSaved }: { initial?: any; onSav
     status: initial?.status || "In Progress",
     project_value: initial?.project_value || 0,
     notes: initial?.notes || "",
-    quote_number: initial?.quote?.quote_number || "",
-    quote_date: initial?.quote?.quote_date || "",
-    quote_amount: initial?.quote?.quote_amount || 0,
-    quote_file: initial?.quote?.quote_file || "",
-    po_number: initial?.po?.po_number || "",
-    po_date: initial?.po?.po_date || "",
-    po_amount: initial?.po?.po_amount || 0,
-    po_file: initial?.po?.po_file || ""
   });
   const [toast, setToast] = useState("");
 
@@ -77,14 +69,6 @@ export default function ProjectForm({ initial, onSaved }: { initial?: any; onSav
         </div>
         {field("project_value", "Project value", "number")}
         <div />
-        {field("quote_number", "Quote number")}
-        {field("quote_date", "Quote date", "date")}
-        {field("quote_amount", "Quote amount", "number")}
-        {field("quote_file", "Quote file")}
-        {field("po_number", "PO number")}
-        {field("po_date", "PO date", "date")}
-        {field("po_amount", "PO amount", "number")}
-        {field("po_file", "PO file")}
         <div className="field span-3">
           <label>Notes / remarks</label>
           <textarea value={form.notes} onChange={(event) => update("notes", event.target.value)} />
