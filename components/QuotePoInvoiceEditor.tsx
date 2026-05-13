@@ -17,6 +17,7 @@ export default function QuotePoInvoiceEditor({ project, onRefresh }: { project: 
     po_amount: project.po?.po_amount || 0,
     po_file: project.po?.po_file || ""
   });
+  const [toast, setToast] = useState("");
   const invoices = project.documents.filter((doc: any) => doc.document_type === "Invoice");
 
   function set(key: string, value: string) {
@@ -30,21 +31,26 @@ export default function QuotePoInvoiceEditor({ project, onRefresh }: { project: 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form)
     });
-    if (res.ok) onRefresh();
-    else alert((await res.json()).error);
+    if (res.ok) {
+      setToast("Saved successfully");
+      onRefresh();
+    } else alert((await res.json()).error);
   }
 
   async function upload(documentType: "Quote" | "PO" | "Invoice", files: FileList) {
+    const fileArray = Array.from(files);
+    const firstFileName = fileArray[0]?.name || "";
     const data = new FormData();
     data.append("document_type", documentType);
-    Array.from(files).forEach((file) => data.append("files", file));
+    fileArray.forEach((file) => data.append("files", file));
     const res = await fetch(`/api/projects/${project.id}/documents`, { method: "POST", body: data });
     if (!res.ok) {
       alert((await res.json()).error);
       return;
     }
-    if (documentType === "Quote") setForm((current) => ({ ...current, quote_file: files[0].name }));
-    if (documentType === "PO") setForm((current) => ({ ...current, po_file: files[0].name }));
+    if (documentType === "Quote") setForm((current) => ({ ...current, quote_file: firstFileName }));
+    if (documentType === "PO") setForm((current) => ({ ...current, po_file: firstFileName }));
+    setToast(`${documentType} uploaded successfully`);
     onRefresh();
   }
   async function removeAttachment(documentType: "Quote" | "PO") {
@@ -56,6 +62,7 @@ export default function QuotePoInvoiceEditor({ project, onRefresh }: { project: 
     }
     if (documentType === "Quote") setForm((current) => ({ ...current, quote_file: "" }));
     if (documentType === "PO") setForm((current) => ({ ...current, po_file: "" }));
+    setToast(`${documentType} attachment removed`);
     onRefresh();
   }
 
@@ -102,6 +109,7 @@ export default function QuotePoInvoiceEditor({ project, onRefresh }: { project: 
           )) : <div className="muted">No invoices uploaded yet.</div>}
         </div>
       </section>
+      {toast ? <div className="toast">{toast}</div> : null}
     </div>
   );
 }

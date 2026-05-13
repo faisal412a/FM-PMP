@@ -15,7 +15,7 @@ export default function ProjectForm({ initial, onSaved }: { initial?: any; onSav
     location: initial?.location || "",
     start_date: initial?.start_date || "",
     expected_completion_date: initial?.expected_completion_date || "",
-    status: initial?.status || "In Progress",
+    status: initial?.status || "Bidding",
     project_value: initial?.project_value || 0,
     notes: initial?.notes || "",
   });
@@ -65,7 +65,11 @@ export default function ProjectForm({ initial, onSaved }: { initial?: any; onSav
             {statuses.map((status) => <option key={status}>{status}</option>)}
           </select>
         </div>
-        {field("project_value", "Project value", "number")}
+        <div className="field">
+          <label>Project value</label>
+          <input className="input" value={form.project_value ?? 0} readOnly />
+          <div className="muted">Auto-filled from quote amount</div>
+        </div>
         <div />
         <div className="field span-3">
           <label>Notes / remarks</label>
