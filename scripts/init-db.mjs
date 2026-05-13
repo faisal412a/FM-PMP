@@ -49,7 +49,7 @@ create table projects (
   created_by integer references users(id),
   created_at text not null default current_timestamp,
   updated_at text not null default current_timestamp,
-  constraint status_allowed check (status in ('In Progress','Completed','On Hold','Delayed','Cancelled')),
+  constraint status_allowed check (status in ('Bidding','In Progress','Completed','On Hold','Delayed','Cancelled')),
   constraint completion_after_start check (actual_completion_date is null or start_date is null or actual_completion_date >= start_date)
 );
 
@@ -59,6 +59,7 @@ create table project_quotes (
   quote_number text,
   quote_date text,
   quote_amount real default 0,
+  supplier_name text,
   quote_file text
 );
 
@@ -81,6 +82,7 @@ create table payment_terms (
   payment_date text,
   paid_amount real not null default 0,
   balance_amount real not null default 0,
+  progress_trigger_percentage real not null default 0,
   status text not null default 'Pending',
   remarks text,
   created_at text not null default current_timestamp,
@@ -228,7 +230,7 @@ const projects = [
   }
 ];
 
-const quote = db.prepare("insert into project_quotes (project_id, quote_number, quote_date, quote_amount, quote_file) values (?, ?, ?, ?, ?)");
+const quote = db.prepare("insert into project_quotes (project_id, quote_number, quote_date, quote_amount, supplier_name, quote_file) values (?, ?, ?, ?, ?, ?)");
 const po = db.prepare("insert into project_pos (project_id, po_number, po_date, po_amount, po_file) values (?, ?, ?, ?, ?)");
 const payment = db.prepare(`
 insert into payment_terms (project_id, stage_name, payment_percentage, payment_amount, due_date, payment_date, paid_amount, balance_amount, status, remarks)
@@ -246,7 +248,7 @@ values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
 projects.forEach((project, index) => {
   const result = insertProject.run(project);
   const id = result.lastInsertRowid;
-  quote.run(id, `Q-${project.project_number.slice(-4)}`, project.start_date, project.project_value * 0.98, "quote-sample.pdf");
+  quote.run(id, `Q-${project.project_number.slice(-4)}`, project.start_date, project.project_value * 0.98, project.supplier_name, "quote-sample.pdf");
   po.run(id, `PO-${project.project_number.slice(-4)}`, project.start_date, project.project_value, "po-sample.pdf");
   payment.run(id, "Down Payment", 30, project.project_value * 0.3, project.start_date, project.start_date, project.project_value * 0.3, 0, "Paid", "Advance received");
   payment.run(id, "Progressive Payment 1", 40, project.project_value * 0.4, "2026-04-20", index === 1 ? null : "2026-04-22", index === 1 ? project.project_value * 0.2 : project.project_value * 0.4, index === 1 ? project.project_value * 0.2 : 0, index === 1 ? "Partially Paid" : "Paid", "");
