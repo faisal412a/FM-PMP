@@ -29,6 +29,19 @@ function ensureColumn(table: string, column: string, definition: string) {
 ensureColumn("project_quotes", "supplier_name", "text");
 ensureColumn("payment_terms", "progress_trigger_percentage", "real not null default 0");
 
+db.exec(`
+create table if not exists suppliers (
+  id integer primary key autoincrement,
+  name text not null unique,
+  contact_person text,
+  email text,
+  phone text,
+  category text,
+  notes text,
+  created_at text not null default current_timestamp
+);
+`);
+
 export function rows<T = Record<string, unknown>>(sql: string, params: unknown[] | Record<string, unknown> = []) {
   return db.prepare(sql).all(params) as T[];
 }
