@@ -17,6 +17,17 @@ export const db =
 if (process.env.NODE_ENV !== "production") globalForDb.pmDb = db;
 
 db.pragma("foreign_keys = ON");
+db.pragma("ignore_check_constraints = ON");
+
+function ensureColumn(table: string, column: string, definition: string) {
+  const columns = db.prepare(`pragma table_info(${table})`).all() as Array<{ name: string }>;
+  if (!columns.some((item) => item.name === column)) {
+    db.prepare(`alter table ${table} add column ${column} ${definition}`).run();
+  }
+}
+
+ensureColumn("project_quotes", "supplier_name", "text");
+ensureColumn("payment_terms", "progress_trigger_percentage", "real not null default 0");
 
 export function rows<T = Record<string, unknown>>(sql: string, params: unknown[] | Record<string, unknown> = []) {
   return db.prepare(sql).all(params) as T[];
