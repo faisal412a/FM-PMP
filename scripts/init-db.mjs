@@ -148,6 +148,17 @@ create table supplier_evaluations (
   )
 );
 
+create table suppliers (
+  id integer primary key autoincrement,
+  name text not null unique,
+  contact_person text,
+  email text,
+  phone text,
+  category text,
+  notes text,
+  created_at text not null default current_timestamp
+);
+
 create table activity_logs (
   id integer primary key autoincrement,
   created_at text not null default current_timestamp,
@@ -175,6 +186,11 @@ user.run("Admin User", "admin@demo.com", hashPassword("password123"), roleId("Ad
 user.run("Data Entry User", "data@demo.com", hashPassword("password123"), roleId("Data Entry"));
 user.run("Finance User", "finance@demo.com", hashPassword("password123"), roleId("Project Finance"));
 user.run("Management User", "management@demo.com", hashPassword("password123"), roleId("Management"));
+
+const supplier = db.prepare("insert into suppliers (name, contact_person, email, phone, category, notes) values (?, ?, ?, ?, ?, ?)");
+supplier.run("Delta Interiors", "Sara Ahmed", "delta@example.com", "+966500000001", "Fit-Out", "Preferred fit-out supplier");
+supplier.run("Madar Fabrication", "Khalid Omar", "madar@example.com", "+966500000002", "Retail", "Fabrication and kiosks");
+supplier.run("Bright Signs", "Nasser Ali", "bright@example.com", "+966500000003", "Signage", "Signage supplier");
 
 const insertProject = db.prepare(`
 insert into projects
