@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Save } from "lucide-react";
+import { Save, Trash2 } from "lucide-react";
 import FileUploadButton from "./FileUploadButton";
 import { money } from "@/lib/format";
 
@@ -47,6 +47,17 @@ export default function QuotePoInvoiceEditor({ project, onRefresh }: { project: 
     if (documentType === "PO") setForm((current) => ({ ...current, po_file: files[0].name }));
     onRefresh();
   }
+  async function removeAttachment(documentType: "Quote" | "PO") {
+    if (!confirm(`Remove attached ${documentType} file?`)) return;
+    const res = await fetch(`/api/projects/${project.id}/documents?documentType=${documentType}`, { method: "DELETE" });
+    if (!res.ok) {
+      alert((await res.json()).error);
+      return;
+    }
+    if (documentType === "Quote") setForm((current) => ({ ...current, quote_file: "" }));
+    if (documentType === "PO") setForm((current) => ({ ...current, po_file: "" }));
+    onRefresh();
+  }
 
   return (
     <div className="grid three">
@@ -60,6 +71,7 @@ export default function QuotePoInvoiceEditor({ project, onRefresh }: { project: 
           <div className="muted">Current file: {form.quote_file || "No file attached"}</div>
           <div className="toolbar">
             <FileUploadButton label="Attach quote" onFiles={(files) => upload("Quote", files)} />
+            {form.quote_file ? <button type="button" className="btn danger" onClick={() => removeAttachment("Quote")}><Trash2 size={18} />Remove</button> : null}
             <button className="btn"><Save size={18} />Save</button>
           </div>
         </div>
@@ -74,6 +86,7 @@ export default function QuotePoInvoiceEditor({ project, onRefresh }: { project: 
           <div className="muted">Current file: {form.po_file || "No file attached"}</div>
           <div className="toolbar">
             <FileUploadButton label="Attach PO" onFiles={(files) => upload("PO", files)} />
+            {form.po_file ? <button type="button" className="btn danger" onClick={() => removeAttachment("PO")}><Trash2 size={18} />Remove</button> : null}
             <button className="btn"><Save size={18} />Save</button>
           </div>
         </div>

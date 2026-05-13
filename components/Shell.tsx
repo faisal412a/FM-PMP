@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, FileSpreadsheet, FolderKanban, LogOut, PanelLeft, Users } from "lucide-react";
+import { BarChart3, FileSpreadsheet, FolderKanban, Handshake, LogOut, PanelLeft, Users } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 import { navForRole } from "@/lib/permissions";
 
 const icons: Record<string, any> = {
   Dashboard: BarChart3,
   Projects: FolderKanban,
+  Suppliers: Handshake,
   Reports: FileSpreadsheet,
   Users
 };
