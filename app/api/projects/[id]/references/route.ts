@@ -11,7 +11,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const project = row<any>("select project_value from projects where id = ?", [projectId]);
   if (!project) return json({ error: "Project not found" }, 404);
 
-  if (Number(body.po_amount || 0) > Number(project.project_value || 0) && auth.user.role !== "Admin") {
+  const quoteAmount = Number(body.quote_amount || 0);
+  const effectiveProjectValue = quoteAmount || Number(project.project_value || 0);
+  if (Number(body.po_amount || 0) > effectiveProjectValue && auth.user.role !== "Admin") {
     return json({ error: "PO amount cannot exceed project value without Admin confirmation" }, 400);
   }
 
@@ -24,6 +26,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     body.po_date || null,
     Number(body.po_amount || 0),
     body.po_file || "",
+    projectId
+  ]);
+  run("update projects set project_value = ?, supplier_name = coalesce(nullif(?, ''), supplier_name), updated_at = current_timestamp where id = ?", [
+    effectiveProjectValue,
+    body.supplier_name || "",
     projectId
   ]);
   if (body.po_number || body.po_date || Number(body.po_amount || 0) > 0) {

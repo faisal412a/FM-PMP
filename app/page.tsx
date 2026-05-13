@@ -19,7 +19,9 @@ export default function DashboardPage() {
     ["In Progress", data.cards.inProgress, Gauge],
     ["Delayed", data.cards.delayed, TimerReset],
     ["Total Paid", money(data.cards.totalPaid), CreditCard],
-    ["Total Balance", money(data.cards.totalBalance), CreditCard]
+    ["Total Balance", money(data.cards.totalBalance), CreditCard],
+    ["Upcoming 30 Days", money(data.cards.upcoming30), CreditCard],
+    ["Upcoming 90 Days", money(data.cards.upcoming90), CreditCard]
   ];
 
   return (

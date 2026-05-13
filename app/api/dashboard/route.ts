@@ -23,7 +23,9 @@ export async function GET(request: NextRequest) {
     totalValue: projects.reduce((sum, p) => sum + Number(p.project_value || 0), 0),
     totalPaid: payments.reduce((sum, p) => sum + Number(p.paid_amount || 0), 0),
     totalBalance: payments.reduce((sum, p) => sum + Number(p.balance_amount || 0), 0),
-    totalOverdue: payments.filter((p) => p.status === "Overdue").reduce((sum, p) => sum + Number(p.balance_amount || 0), 0)
+    totalOverdue: payments.filter((p) => p.status === "Overdue").reduce((sum, p) => sum + Number(p.balance_amount || 0), 0),
+    upcoming30: upcomingAmount(payments, 30),
+    upcoming90: upcomingAmount(payments, 90)
   };
 
   return json({
@@ -45,4 +47,17 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => String(a.due_date).localeCompare(String(b.due_date)))
       .slice(0, 8)
   });
+}
+
+function upcomingAmount(payments: any[], days: number) {
+  const today = new Date();
+  const end = new Date();
+  end.setDate(today.getDate() + days);
+  return payments
+    .filter((payment) => payment.status !== "Paid" && payment.due_date)
+    .filter((payment) => {
+      const due = new Date(payment.due_date);
+      return due >= today && due <= end;
+    })
+    .reduce((sum, payment) => sum + Number(payment.balance_amount || 0), 0);
 }

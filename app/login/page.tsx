@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { LogIn } from "lucide-react";
 
 export default function LoginPage() {
@@ -30,7 +31,10 @@ export default function LoginPage() {
   return (
     <main className="login-page">
       <form className="panel login-card" onSubmit={submit}>
-        <h1 className="page-title">Project Management</h1>
+        <div className="login-brand">
+          <Image src="/faden-primary.png" alt="Faden Media" width={260} height={130} priority />
+          <h1>Faden PMS</h1>
+        </div>
         <p className="muted">Sign in with one of the seeded demo accounts.</p>
         <div className="grid">
           <div className="field">

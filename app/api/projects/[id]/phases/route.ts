@@ -3,6 +3,12 @@ import { json, requireUser } from "@/lib/api";
 import { logActivity, row, run } from "@/lib/db";
 import { refreshPhaseDelays } from "@/lib/calculations";
 
+function normalizedPhaseStatus(status: string | undefined, completion: number) {
+  if (completion >= 100) return "Completed";
+  if (completion > 0) return "In Progress";
+  return status || "Not Started";
+}
+
 function maybeCompleteProject(projectId: number) {
   const handover = row<any>("select completion_percentage from project_phases where project_id = ? and phase_name = 'Handover'", [projectId]);
   if (Number(handover?.completion_percentage || 0) >= 100) {
@@ -29,7 +35,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       body.actual_start_date || null,
       body.actual_completion_date || null,
       body.responsible_person || "",
-      body.status || "Not Started",
+      normalizedPhaseStatus(body.status, Number(body.completion_percentage || 0)),
       Number(body.completion_percentage || 0),
       body.remarks || "",
       body.attachment_file || ""
@@ -60,7 +66,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       body.actual_start_date || null,
       body.actual_completion_date || null,
       body.responsible_person || "",
-      body.status || "Not Started",
+      normalizedPhaseStatus(body.status, Number(body.completion_percentage || 0)),
       Number(body.completion_percentage || 0),
       body.remarks || "",
       body.attachment_file || "",
