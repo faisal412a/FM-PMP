@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BarChart3, Bell, FileSpreadsheet, FolderKanban, Globe2, LogOut, Maximize, Moon, PanelLeft, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { BarChart3, FileSpreadsheet, FolderKanban, LogOut, PanelLeft, Users } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 import { navForRole } from "@/lib/permissions";
 
@@ -16,14 +16,29 @@ const icons: Record<string, any> = {
 
 export default function Shell({ user, children }: { user: SessionUser; children: React.ReactNode }) {
   const router = useRouter();
+  const [collapsed, setCollapsed] = useState(false);
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
   }
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const reset = () => {
+      clearTimeout(timer);
+      timer = setTimeout(logout, 30 * 60 * 1000);
+    };
+    const events = ["mousemove", "mousedown", "keydown", "scroll", "touchstart"];
+    events.forEach((event) => window.addEventListener(event, reset, { passive: true }));
+    reset();
+    return () => {
+      clearTimeout(timer);
+      events.forEach((event) => window.removeEventListener(event, reset));
+    };
+  }, []);
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${collapsed ? "sidebar-collapsed" : ""}`}>
       <aside className="sidebar">
-        <div className="brand"><Image src="/faden-logo.png" alt="Faden Media" width={124} height={58} priority /></div>
+        <div className="brand-text">Faden PMS</div>
         <div className="sidebar-section">MENU</div>
         <div>{user.name}</div>
         <div className="role-pill">{user.role}</div>
@@ -37,12 +52,8 @@ export default function Shell({ user, children }: { user: SessionUser; children:
       </aside>
       <section className="content-shell">
         <header className="app-header">
-          <button className="icon-btn" aria-label="Toggle navigation"><PanelLeft size={21} /></button>
+          <button className="icon-btn" aria-label="Toggle navigation" onClick={() => setCollapsed((value) => !value)}><PanelLeft size={21} /></button>
           <div className="header-actions">
-            <Globe2 size={18} />
-            <Maximize size={18} />
-            <Moon size={18} />
-            <span className="notification"><Bell size={18} /><b>0</b></span>
             <div className="header-user">{user.email}</div>
           </div>
         </header>

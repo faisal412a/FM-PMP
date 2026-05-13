@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Save } from "lucide-react";
 
-const statuses = ["In Progress", "Completed", "On Hold", "Delayed", "Cancelled"];
+const statuses = ["Bidding", "In Progress", "Completed", "On Hold", "Delayed", "Cancelled"];
 
 export default function ProjectForm({ initial, onSaved }: { initial?: any; onSaved: (project: any) => void }) {
   const [form, setForm] = useState<any>({
@@ -15,7 +15,6 @@ export default function ProjectForm({ initial, onSaved }: { initial?: any; onSav
     location: initial?.location || "",
     start_date: initial?.start_date || "",
     expected_completion_date: initial?.expected_completion_date || "",
-    actual_completion_date: initial?.actual_completion_date || "",
     status: initial?.status || "In Progress",
     project_value: initial?.project_value || 0,
     notes: initial?.notes || "",
@@ -58,9 +57,8 @@ export default function ProjectForm({ initial, onSaved }: { initial?: any; onSav
         {field("project_manager", "Project manager")}
         {field("category", "Category/type")}
         {field("location", "Location")}
-        {field("start_date", "Start date", "date")}
+        {field("start_date", "Expected Starting Date", "date")}
         {field("expected_completion_date", "Expected completion", "date")}
-        {field("actual_completion_date", "Actual completion", "date")}
         <div className="field">
           <label>Status</label>
           <select value={form.status} onChange={(event) => update("status", event.target.value)}>

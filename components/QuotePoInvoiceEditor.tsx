@@ -10,6 +10,7 @@ export default function QuotePoInvoiceEditor({ project, onRefresh }: { project: 
     quote_number: project.quote?.quote_number || "",
     quote_date: project.quote?.quote_date || "",
     quote_amount: project.quote?.quote_amount || 0,
+    supplier_name: project.quote?.supplier_name || project.supplier_name || "",
     quote_file: project.quote?.quote_file || "",
     po_number: project.po?.po_number || "",
     po_date: project.po?.po_date || "",
@@ -54,6 +55,7 @@ export default function QuotePoInvoiceEditor({ project, onRefresh }: { project: 
         <div className="grid">
           <div className="field"><label>Quote number</label><input className="input" value={form.quote_number} onChange={(e) => set("quote_number", e.target.value)} /></div>
           <div className="field"><label>Quote date</label><input className="input" type="date" value={form.quote_date || ""} onChange={(e) => set("quote_date", e.target.value)} /></div>
+          <div className="field"><label>Supplier name</label><select value={form.supplier_name} onChange={(e) => set("supplier_name", e.target.value)}>{[...new Set([form.supplier_name, project.supplier_name, ...(project.supplierOptions || [])].filter(Boolean))].map((supplier: any) => <option key={supplier}>{supplier}</option>)}</select></div>
           <div className="field"><label>Quote amount</label><input className="input" type="number" value={form.quote_amount} onChange={(e) => set("quote_amount", e.target.value)} /></div>
           <div className="muted">Current file: {form.quote_file || "No file attached"}</div>
           <div className="toolbar">
