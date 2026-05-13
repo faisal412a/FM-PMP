@@ -12,7 +12,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const projectId = Number(id);
   const form = await request.formData();
   const documentType = String(form.get("document_type") || "Project Document");
-  const files = form.getAll("files").filter((file): file is File => file instanceof File && file.size > 0);
+  const files = form.getAll("files").filter((file): file is File => {
+    return typeof file === "object" && file !== null && "arrayBuffer" in file && "name" in file && "size" in file && Number((file as File).size) > 0;
+  });
 
   if (!files.length) return json({ error: "Select at least one file" }, 400);
 

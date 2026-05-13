@@ -16,8 +16,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   run(
-    `update project_quotes set quote_number=?, quote_date=?, quote_amount=?, quote_file=? where project_id=?`,
-    [body.quote_number || "", body.quote_date || null, Number(body.quote_amount || 0), body.quote_file || "", projectId]
+    `update project_quotes set quote_number=?, quote_date=?, quote_amount=?, supplier_name=?, quote_file=? where project_id=?`,
+    [body.quote_number || "", body.quote_date || null, Number(body.quote_amount || 0), body.supplier_name || "", body.quote_file || "", projectId]
   );
   run("update project_pos set po_number=?, po_date=?, po_amount=?, po_file=? where project_id=?", [
     body.po_number || "",

@@ -28,17 +28,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const balance = Math.max(0, amount - paid);
   const result = run(
     `insert into payment_terms
-     (project_id, stage_name, payment_percentage, payment_amount, due_date, payment_date, paid_amount, balance_amount, status, remarks)
-     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     (project_id, stage_name, payment_percentage, payment_amount, due_date, payment_date, paid_amount, balance_amount, progress_trigger_percentage, status, remarks)
+     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       projectId,
-      body.stage_name,
+      normalizedStageName(projectId, body.stage_name),
       Number(body.payment_percentage || 0),
       amount,
       body.due_date || null,
       body.payment_date || null,
       paid,
       balance,
+      Number(body.progress_trigger_percentage || 0),
       dbPaymentStatus(body.status),
       body.remarks || ""
     ]
@@ -60,7 +61,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const amount = Number(body.payment_amount || 0);
   run(
     `update payment_terms set stage_name=?, payment_percentage=?, payment_amount=?, due_date=?,
-     payment_date=?, paid_amount=?, balance_amount=?, status=?, remarks=? where id=? and project_id=?`,
+     payment_date=?, paid_amount=?, balance_amount=?, progress_trigger_percentage=?, status=?, remarks=? where id=? and project_id=?`,
     [
       body.stage_name,
       Number(body.payment_percentage || 0),
@@ -69,6 +70,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       body.payment_date || null,
       paid,
       Math.max(0, amount - paid),
+      Number(body.progress_trigger_percentage || 0),
       dbPaymentStatus(body.status),
       body.remarks || "",
       body.id,
@@ -78,4 +80,26 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   refreshPaymentStatuses(projectId);
   logActivity({ userId: auth.user.id, action: "Payment updated", module: "Payments", oldValue: before, newValue: { projectId, ...body } });
   return json({ ok: true });
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = requireUser(request, "payment:write");
+  if ("error" in auth) return auth.error;
+  const { id } = await params;
+  const projectId = Number(id);
+  const paymentId = Number(request.nextUrl.searchParams.get("paymentId"));
+  const before = row<any>("select * from payment_terms where id = ? and project_id = ?", [paymentId, projectId]);
+  if (!before) return json({ error: "Payment term not found" }, 404);
+  run("delete from payment_terms where id = ? and project_id = ?", [paymentId, projectId]);
+  logActivity({ userId: auth.user.id, action: "Payment deleted", module: "Payments", oldValue: before, newValue: { projectId } });
+  return json({ ok: true });
+}
+
+function normalizedStageName(projectId: number, stage: string) {
+  if (stage !== "Progressive Payment") return stage;
+  const count = row<{ total: number }>(
+    "select count(*) as total from payment_terms where project_id = ? and stage_name like 'Progressive Payment%'",
+    [projectId]
+  )?.total ?? 0;
+  return `Progressive Payment ${count + 1}`;
 }

@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         start_date: body.start_date || null,
         expected_completion_date: body.expected_completion_date || null,
         actual_completion_date: body.actual_completion_date || null,
-        status: body.status || "In Progress",
+        status: body.status || "Bidding",
         project_value: Number(body.project_value || 0),
         notes: body.notes || "",
         created_by: auth.user.id

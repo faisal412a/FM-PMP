@@ -64,3 +64,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   logActivity({ userId: auth.user.id, action: "Progress phase updated", module: "Progress", oldValue: before, newValue: { projectId, ...body } });
   return json({ ok: true });
 }
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = requireUser(request, "progress:write");
+  if ("error" in auth) return auth.error;
+  const { id } = await params;
+  const projectId = Number(id);
+  const phaseId = Number(request.nextUrl.searchParams.get("phaseId"));
+  const before = row<any>("select * from project_phases where id = ? and project_id = ?", [phaseId, projectId]);
+  if (!before) return json({ error: "Phase not found" }, 404);
+  run("delete from project_phases where id = ? and project_id = ?", [phaseId, projectId]);
+  logActivity({ userId: auth.user.id, action: "Progress phase deleted", module: "Progress", oldValue: before, newValue: { projectId } });
+  return json({ ok: true });
+}

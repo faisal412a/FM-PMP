@@ -10,6 +10,7 @@ function getProject(id: number) {
     ...project,
     quote: row<any>("select * from project_quotes where project_id = ?", [id]),
     po: row<any>("select * from project_pos where project_id = ?", [id]),
+    supplierOptions: rows<any>("select distinct supplier_name from projects where supplier_name is not null and supplier_name != '' order by supplier_name").map((item) => item.supplier_name),
     payments: rows<any>("select * from payment_terms where project_id = ? order by due_date", [id]),
     phases: rows<any>("select * from project_phases where project_id = ? order by id", [id]),
     documents: rows<any>("select * from project_documents where project_id = ? order by uploaded_at desc", [id]),
@@ -67,7 +68,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         start_date: body.start_date || null,
         expected_completion_date: body.expected_completion_date || null,
         actual_completion_date: body.actual_completion_date || null,
-        status: body.status || "In Progress",
+        status: body.status || "Bidding",
         project_value: Number(body.project_value || 0),
         notes: body.notes || ""
       }
