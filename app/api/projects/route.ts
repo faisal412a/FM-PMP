@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
     );
     const projectId = Number(result.lastInsertRowid);
     run(
-      "insert into project_quotes (project_id, quote_number, quote_date, quote_amount, quote_file) values (?, ?, ?, ?, ?)",
-      [projectId, body.quote_number || "", body.quote_date || null, Number(body.quote_amount || 0), body.quote_file || ""]
+      "insert into project_quotes (project_id, quote_number, quote_date, quote_amount, supplier_name, quote_file) values (?, ?, ?, ?, ?, ?)",
+      [projectId, body.quote_number || "", body.quote_date || null, Number(body.quote_amount || 0), body.supplier_name || "", body.quote_file || ""]
     );
     run("insert into project_pos (project_id, po_number, po_date, po_amount, po_file) values (?, ?, ?, ?, ?)", [
       projectId,

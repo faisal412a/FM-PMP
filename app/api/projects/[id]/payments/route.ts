@@ -57,6 +57,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const body = await request.json();
   const before = row<any>("select * from payment_terms where id = ? and project_id = ?", [body.id, projectId]);
   if (!before) return json({ error: "Payment term not found" }, 404);
+  const project = row<any>("select project_value from projects where id = ?", [projectId]);
+  const existing = rows<any>("select id, payment_percentage, payment_amount from payment_terms where project_id = ? and id != ?", [projectId, body.id]);
+  const totalPercentage = existing.reduce((sum, item) => sum + Number(item.payment_percentage || 0), 0) + Number(body.payment_percentage || 0);
+  const totalAmount = existing.reduce((sum, item) => sum + Number(item.payment_amount || 0), 0) + Number(body.payment_amount || 0);
+  if (totalPercentage > 100) return json({ error: "Payment percentage total should not exceed 100%" }, 400);
+  if (project && totalAmount > Number(project.project_value || 0)) return json({ error: "Payment amount total should not exceed project value" }, 400);
   const paid = Number(body.paid_amount || 0);
   const amount = Number(body.payment_amount || 0);
   run(

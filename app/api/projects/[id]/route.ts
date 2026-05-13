@@ -67,23 +67,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         location: body.location || "",
         start_date: body.start_date || null,
         expected_completion_date: body.expected_completion_date || null,
-        actual_completion_date: body.actual_completion_date || null,
+        actual_completion_date: body.actual_completion_date || before.actual_completion_date || null,
         status: body.status || "Bidding",
         project_value: Number(body.project_value || 0),
         notes: body.notes || ""
       }
     );
-    run(
-      `update project_quotes set quote_number=?, quote_date=?, quote_amount=?, quote_file=? where project_id=?`,
-      [body.quote_number || "", body.quote_date || null, Number(body.quote_amount || 0), body.quote_file || "", projectId]
-    );
-    run(`update project_pos set po_number=?, po_date=?, po_amount=?, po_file=? where project_id=?`, [
-      body.po_number || "",
-      body.po_date || null,
-      Number(body.po_amount || 0),
-      body.po_file || "",
-      projectId
-    ]);
     logActivity({ userId: auth.user.id, action: "Project updated", module: "Projects", oldValue: before, newValue: { projectId, ...body } });
   })();
 

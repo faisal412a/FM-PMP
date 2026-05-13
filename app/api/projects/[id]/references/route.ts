@@ -26,6 +26,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     body.po_file || "",
     projectId
   ]);
+  if (body.po_number || body.po_date || Number(body.po_amount || 0) > 0) {
+    run("update projects set status = 'In Progress', updated_at = current_timestamp where id = ? and status = 'Bidding'", [projectId]);
+  }
   logActivity({ userId: auth.user.id, action: "Quote and PO updated", module: "Projects", newValue: { projectId, ...body } });
   return json({ ok: true });
 }

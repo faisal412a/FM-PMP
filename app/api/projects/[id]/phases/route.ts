@@ -3,6 +3,13 @@ import { json, requireUser } from "@/lib/api";
 import { logActivity, row, run } from "@/lib/db";
 import { refreshPhaseDelays } from "@/lib/calculations";
 
+function maybeCompleteProject(projectId: number) {
+  const handover = row<any>("select completion_percentage from project_phases where project_id = ? and phase_name = 'Handover'", [projectId]);
+  if (Number(handover?.completion_percentage || 0) >= 100) {
+    run("update projects set status = 'Completed', actual_completion_date = coalesce(actual_completion_date, date('now')), updated_at = current_timestamp where id = ?", [projectId]);
+  }
+}
+
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = requireUser(request, "progress:write");
   if ("error" in auth) return auth.error;
@@ -29,6 +36,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     ]
   );
   refreshPhaseDelays(projectId);
+  maybeCompleteProject(projectId);
   logActivity({ userId: auth.user.id, action: "Progress phase added", module: "Progress", newValue: { projectId, phaseId: result.lastInsertRowid } });
   return json({ id: result.lastInsertRowid }, 201);
 }
@@ -61,6 +69,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     ]
   );
   refreshPhaseDelays(projectId);
+  maybeCompleteProject(projectId);
   logActivity({ userId: auth.user.id, action: "Progress phase updated", module: "Progress", oldValue: before, newValue: { projectId, ...body } });
   return json({ ok: true });
 }
