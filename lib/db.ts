@@ -20,6 +20,10 @@ db.pragma("foreign_keys = ON");
 db.pragma("ignore_check_constraints = ON");
 
 function ensureColumn(table: string, column: string, definition: string) {
+  const exists = db
+    .prepare("select name from sqlite_master where type = 'table' and name = ?")
+    .get(table);
+  if (!exists) return;
   const columns = db.prepare(`pragma table_info(${table})`).all() as Array<{ name: string }>;
   if (!columns.some((item) => item.name === column)) {
     db.prepare(`alter table ${table} add column ${column} ${definition}`).run();
