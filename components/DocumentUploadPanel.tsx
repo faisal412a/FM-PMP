@@ -1,7 +1,7 @@
 "use client";
 
 import FileUploadButton from "./FileUploadButton";
-import { Trash2 } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 
 export default function DocumentUploadPanel({ project, onRefresh, readOnly = false }: { project: any; onRefresh: () => void; readOnly?: boolean }) {
   async function upload(files: FileList) {
@@ -18,6 +18,8 @@ export default function DocumentUploadPanel({ project, onRefresh, readOnly = fal
     if (res.ok) onRefresh();
     else alert((await res.json()).error);
   }
+  const projectDocUrl = (doc: any) => `/api/projects/${project.id}/documents?documentId=${doc.id}`;
+  const supplierDocUrl = (doc: any) => `/api/suppliers/documents?documentId=${doc.id}`;
 
   return (
     <section className="panel table-wrap">
@@ -26,10 +28,10 @@ export default function DocumentUploadPanel({ project, onRefresh, readOnly = fal
         {!readOnly ? <FileUploadButton label="Upload drawings / documents" multiple onFiles={upload} /> : null}
       </div>
       <table>
-        <thead><tr><th>Type</th><th>File</th><th>Path</th><th>Uploaded</th>{!readOnly ? <th>Actions</th> : null}</tr></thead>
+        <thead><tr><th>Type</th><th>File</th><th>Uploaded</th><th>View</th>{!readOnly ? <th>Actions</th> : null}</tr></thead>
         <tbody>
           {project.documents.length ? project.documents.map((doc: any) => (
-            <tr key={doc.id}><td>{doc.document_type}</td><td>{doc.file_name}</td><td>{doc.file_path}</td><td>{doc.uploaded_at}</td>{!readOnly ? <td><button className="btn danger" onClick={() => remove(doc.id)}><Trash2 size={16} />Delete</button></td> : null}</tr>
+            <tr key={doc.id}><td>{doc.document_type}</td><td>{doc.file_name}</td><td>{doc.uploaded_at}</td><td><a className="btn secondary" href={projectDocUrl(doc)} target="_blank"><Eye size={16} />View</a></td>{!readOnly ? <td><button className="btn danger" onClick={() => remove(doc.id)}><Trash2 size={16} />Delete</button></td> : null}</tr>
           )) : <tr><td colSpan={readOnly ? 4 : 5}>No files uploaded yet.</td></tr>}
         </tbody>
       </table>
@@ -37,8 +39,8 @@ export default function DocumentUploadPanel({ project, onRefresh, readOnly = fal
         <>
           <h3 style={{ marginTop: 20 }}>Supplier Documents</h3>
           <table>
-            <thead><tr><th>Supplier</th><th>Type</th><th>File</th><th>Uploaded</th></tr></thead>
-            <tbody>{project.supplierDocuments.map((doc: any) => <tr key={`supplier-${doc.id}`}><td>{doc.supplier_name}</td><td>{doc.document_type}</td><td>{doc.file_name}</td><td>{doc.uploaded_at}</td></tr>)}</tbody>
+            <thead><tr><th>Supplier</th><th>Type</th><th>File</th><th>Uploaded</th><th>View</th></tr></thead>
+            <tbody>{project.supplierDocuments.map((doc: any) => <tr key={`supplier-${doc.id}`}><td>{doc.supplier_name}</td><td>{doc.document_type}</td><td>{doc.file_name}</td><td>{doc.uploaded_at}</td><td><a className="btn secondary" href={supplierDocUrl(doc)} target="_blank"><Eye size={16} />View</a></td></tr>)}</tbody>
           </table>
         </>
       ) : null}
