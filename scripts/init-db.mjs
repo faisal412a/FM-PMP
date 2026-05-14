@@ -151,12 +151,28 @@ create table supplier_evaluations (
 create table suppliers (
   id integer primary key autoincrement,
   name text not null unique,
+  arabic_name text,
   contact_person text,
   email text,
   phone text,
+  secondary_phone text,
+  vat_number text,
+  cr_number text,
+  national_address text,
+  has_whatsapp integer not null default 0,
   category text,
   notes text,
   created_at text not null default current_timestamp
+);
+
+create table supplier_documents (
+  id integer primary key autoincrement,
+  supplier_name text not null,
+  document_type text not null,
+  file_name text not null,
+  file_path text,
+  uploaded_by integer references users(id),
+  uploaded_at text not null default current_timestamp
 );
 
 create table activity_logs (
@@ -187,10 +203,10 @@ user.run("Data Entry User", "data@demo.com", hashPassword("password123"), roleId
 user.run("Finance User", "finance@demo.com", hashPassword("password123"), roleId("Project Finance"));
 user.run("Management User", "management@demo.com", hashPassword("password123"), roleId("Management"));
 
-const supplier = db.prepare("insert into suppliers (name, contact_person, email, phone, category, notes) values (?, ?, ?, ?, ?, ?)");
-supplier.run("Delta Interiors", "Sara Ahmed", "delta@example.com", "+966500000001", "Fit-Out", "Preferred fit-out supplier");
-supplier.run("Madar Fabrication", "Khalid Omar", "madar@example.com", "+966500000002", "Retail", "Fabrication and kiosks");
-supplier.run("Bright Signs", "Nasser Ali", "bright@example.com", "+966500000003", "Signage", "Signage supplier");
+const supplier = db.prepare("insert into suppliers (name, arabic_name, contact_person, email, phone, secondary_phone, vat_number, cr_number, national_address, category, notes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+supplier.run("Delta Interiors", "دلتا للتصميم الداخلي", "Sara Ahmed", "delta@example.com", "+966500000001", "", "300000000000001", "1010000001", "Riyadh", "Fit-Out", "Preferred fit-out supplier");
+supplier.run("Madar Fabrication", "مدار للتصنيع", "Khalid Omar", "madar@example.com", "+966500000002", "", "300000000000002", "1010000002", "Jeddah", "Retail", "Fabrication and kiosks");
+supplier.run("Bright Signs", "برايت ساينز", "Nasser Ali", "bright@example.com", "+966500000003", "", "300000000000003", "1010000003", "Dammam", "Signage", "Signage supplier");
 
 const insertProject = db.prepare(`
 insert into projects
