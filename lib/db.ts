@@ -33,14 +33,37 @@ db.exec(`
 create table if not exists suppliers (
   id integer primary key autoincrement,
   name text not null unique,
+  arabic_name text,
   contact_person text,
   email text,
   phone text,
+  secondary_phone text,
+  vat_number text,
+  cr_number text,
+  national_address text,
+  has_whatsapp integer not null default 0,
   category text,
   notes text,
   created_at text not null default current_timestamp
 );
+
+create table if not exists supplier_documents (
+  id integer primary key autoincrement,
+  supplier_name text not null,
+  document_type text not null,
+  file_name text not null,
+  file_path text,
+  uploaded_by integer references users(id),
+  uploaded_at text not null default current_timestamp
+);
 `);
+
+ensureColumn("suppliers", "arabic_name", "text");
+ensureColumn("suppliers", "secondary_phone", "text");
+ensureColumn("suppliers", "vat_number", "text");
+ensureColumn("suppliers", "cr_number", "text");
+ensureColumn("suppliers", "national_address", "text");
+ensureColumn("suppliers", "has_whatsapp", "integer not null default 0");
 
 export function rows<T = Record<string, unknown>>(sql: string, params: unknown[] | Record<string, unknown> = []) {
   return db.prepare(sql).all(params) as T[];
