@@ -25,7 +25,8 @@ export default function SuppliersPage() {
   const [form, setForm] = useState<any>(emptySupplier);
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState("");
-  const [documents, setDocuments] = useState<Record<string, File[]>>({ CR: [], VAT: [], "National Address": [] });
+  const [uploadedDocuments, setUploadedDocuments] = useState<any[]>([]);
+  const [uploading, setUploading] = useState("");
   const readOnly = role === "Management";
 
   async function load() {
@@ -39,16 +40,24 @@ export default function SuppliersPage() {
     fetch("/api/auth/me").then((res) => res.ok ? res.json() : null).then((body) => setRole(body?.user?.role || ""));
   }, []);
 
-  async function uploadSupplierDocuments(supplierName: string) {
-    for (const [documentType, files] of Object.entries(documents)) {
-      if (!files.length) continue;
-      const data = new FormData();
-      data.append("supplier_name", supplierName);
-      data.append("document_type", documentType);
-      files.forEach((file) => data.append("files", file));
-      const res = await fetch("/api/suppliers/documents", { method: "POST", body: data });
-      if (!res.ok) throw new Error((await res.json()).error || "Unable to upload supplier document");
+  async function uploadSupplierDocument(documentType: string, files: FileList) {
+    if (!form.name.trim()) {
+      alert("Enter Company Name (English) before uploading supplier documents.");
+      return;
     }
+    setUploading(documentType);
+    const data = new FormData();
+    data.append("supplier_name", form.name.trim());
+    data.append("document_type", documentType);
+    Array.from(files).forEach((file) => data.append("files", file));
+    const res = await fetch("/api/suppliers/documents", { method: "POST", body: data });
+    setUploading("");
+    if (!res.ok) {
+      alert((await res.json()).error || "Unable to upload supplier document");
+      return;
+    }
+    const body = await res.json();
+    setUploadedDocuments(body.documents || []);
   }
 
   async function save(event: React.FormEvent) {
@@ -58,14 +67,8 @@ export default function SuppliersPage() {
       alert((await res.json()).error);
       return;
     }
-    try {
-      await uploadSupplierDocuments(form.name);
-    } catch (error: any) {
-      alert(`Supplier saved, but document upload failed: ${error.message}`);
-      return;
-    }
     setForm(emptySupplier);
-    setDocuments({ CR: [], VAT: [], "National Address": [] });
+    setUploadedDocuments([]);
     setOpen(false);
     load();
   }
@@ -85,12 +88,11 @@ export default function SuppliersPage() {
       category: supplier.category || "",
       notes: supplier.notes || ""
     });
-    setDocuments({ CR: [], VAT: [], "National Address": [] });
+    setUploadedDocuments([]);
     setOpen(true);
   }
 
   const set = (key: string, value: any) => setForm((current: any) => ({ ...current, [key]: value }));
-  const addDocs = (type: string, files: FileList) => setDocuments((current) => ({ ...current, [type]: [...(current[type] || []), ...Array.from(files)] }));
 
   return (
     <>
@@ -150,14 +152,14 @@ export default function SuppliersPage() {
               <div className="field span-3"><label>Notes</label><textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} /></div>
             </div>
             <div className="toolbar">
-              <FileUploadButton label="Upload CR" onFiles={(files) => addDocs("CR", files)} />
-              <FileUploadButton label="Upload VAT" onFiles={(files) => addDocs("VAT", files)} />
-              <FileUploadButton label="Upload National Address" onFiles={(files) => addDocs("National Address", files)} />
+              <FileUploadButton label={uploading === "CR" ? "Uploading CR..." : "Upload CR"} onFiles={(files) => uploadSupplierDocument("CR", files)} />
+              <FileUploadButton label={uploading === "VAT" ? "Uploading VAT..." : "Upload VAT"} onFiles={(files) => uploadSupplierDocument("VAT", files)} />
+              <FileUploadButton label={uploading === "National Address" ? "Uploading..." : "Upload National Address"} onFiles={(files) => uploadSupplierDocument("National Address", files)} />
             </div>
             <div className="upload-list">
-              {Object.entries(documents).map(([type, files]) => files.length ? (
-                <div className="upload-row" key={type}><span>{type}</span><span>{files.map((file) => file.name).join(", ")}</span></div>
-              ) : null)}
+              {uploadedDocuments.map((doc) => (
+                <div className="upload-row" key={doc.id}><span>{doc.document_type}</span><span>{doc.file_name}</span></div>
+              ))}
             </div>
             <p className="muted">Upload supplier CR, VAT & National Address before proceeding with PO.</p>
             <button className="btn" style={{ marginTop: 14 }}><Save size={18} />Save supplier</button>
