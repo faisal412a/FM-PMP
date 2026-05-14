@@ -31,7 +31,7 @@ function emptyForm(projectValue: number) {
   };
 }
 
-export default function PaymentEditor({ project, onRefresh }: { project: any; onRefresh: () => void }) {
+export default function PaymentEditor({ project, onRefresh, readOnly = false }: { project: any; onRefresh: () => void; readOnly?: boolean }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState(emptyForm(Number(project.project_value || 0)));
   const projectProgress = Math.round(project.summary.progress || 0);
@@ -97,10 +97,10 @@ export default function PaymentEditor({ project, onRefresh }: { project: any; on
       <div className="panel table-wrap">
         <div className="toolbar">
           <h3>Payment Schedule</h3>
-          <button className="btn" onClick={addNew}><Plus size={18} />Add payment schedule</button>
+          {!readOnly ? <button className="btn" onClick={addNew}><Plus size={18} />Add payment schedule</button> : null}
         </div>
         <table>
-          <thead><tr><th>Stage</th><th>%</th><th>Amount</th><th>Progress Due</th><th>Due Date</th><th>Paid</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Stage</th><th>%</th><th>Amount</th><th>Progress Due</th><th>Due Date</th><th>Paid</th><th>Balance</th><th>Status</th>{!readOnly ? <th>Actions</th> : null}</tr></thead>
           <tbody>
             {project.payments.map((p: any) => {
               const waitingProgress = Number(p.progress_trigger_percentage || 0) > projectProgress && p.status === "Pending";
@@ -114,7 +114,7 @@ export default function PaymentEditor({ project, onRefresh }: { project: any; on
                   <td>{money(p.paid_amount)}</td>
                   <td>{money(p.balance_amount)}</td>
                   <td>{waitingProgress ? <span className="badge gray">Waiting Progress</span> : <Badge status={p.status} />}</td>
-                  <td><div className="toolbar"><button className="btn secondary" onClick={() => edit(p)}><Edit2 size={16} />Edit</button><button className="btn danger" onClick={() => remove(p.id)}><Trash2 size={16} />Delete</button></div></td>
+                  {!readOnly ? <td><div className="toolbar"><button className="btn secondary" onClick={() => edit(p)}><Edit2 size={16} />Edit</button><button className="btn danger" onClick={() => remove(p.id)}><Trash2 size={16} />Delete</button></div></td> : null}
                 </tr>
               );
             })}

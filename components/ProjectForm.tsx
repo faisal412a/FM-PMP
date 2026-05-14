@@ -5,7 +5,7 @@ import { Save } from "lucide-react";
 
 const statuses = ["Bidding", "In Progress", "Completed", "On Hold", "Delayed", "Cancelled"];
 
-export default function ProjectForm({ initial, onSaved }: { initial?: any; onSaved: (project: any) => void }) {
+export default function ProjectForm({ initial, onSaved, readOnly = false }: { initial?: any; onSaved: (project: any) => void; readOnly?: boolean }) {
   const [form, setForm] = useState<any>({
     name: initial?.name || "",
     client_name: initial?.client_name || "",
@@ -44,7 +44,7 @@ export default function ProjectForm({ initial, onSaved }: { initial?: any; onSav
   const field = (key: string, label: string, type = "text") => (
     <div className="field">
       <label>{label}</label>
-      <input className="input" type={type} value={form[key] ?? ""} onChange={(event) => update(key, event.target.value)} />
+      <input className="input" type={type} value={form[key] ?? ""} onChange={(event) => update(key, event.target.value)} readOnly={readOnly} />
     </div>
   );
 
@@ -61,7 +61,7 @@ export default function ProjectForm({ initial, onSaved }: { initial?: any; onSav
         {field("expected_completion_date", "Expected completion", "date")}
         <div className="field">
           <label>Status</label>
-          <select value={form.status} onChange={(event) => update("status", event.target.value)}>
+          <select value={form.status} onChange={(event) => update("status", event.target.value)} disabled={readOnly}>
             {statuses.map((status) => <option key={status}>{status}</option>)}
           </select>
         </div>
@@ -73,11 +73,11 @@ export default function ProjectForm({ initial, onSaved }: { initial?: any; onSav
         <div />
         <div className="field span-3">
           <label>Notes / remarks</label>
-          <textarea value={form.notes} onChange={(event) => update("notes", event.target.value)} />
+          <textarea value={form.notes} onChange={(event) => update("notes", event.target.value)} readOnly={readOnly} />
         </div>
       </div>
       <div className="toolbar" style={{ marginTop: 16 }}>
-        <button className="btn"><Save size={18} />Save project</button>
+        {!readOnly ? <button className="btn"><Save size={18} />Save project</button> : null}
       </div>
       {toast ? <div className="toast">{toast}</div> : null}
     </form>

@@ -42,7 +42,7 @@ function blankPhase(project: any) {
   };
 }
 
-export default function PhaseEditor({ project, onRefresh }: { project: any; onRefresh: () => void }) {
+export default function PhaseEditor({ project, onRefresh, readOnly = false }: { project: any; onRefresh: () => void; readOnly?: boolean }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<any>(blankPhase(project));
   const phaseOptions = useMemo(() => [...new Set([...phaseTemplates.map((phase) => phase.name), ...project.phases.map((phase: any) => phase.phase_name)])], [project.phases]);
@@ -112,11 +112,11 @@ export default function PhaseEditor({ project, onRefresh }: { project: any; onRe
       <div className="panel table-wrap">
         <div className="toolbar">
           <h3>Progress Tracker</h3>
-          <button className="btn" onClick={addNew}><Plus size={18} />Add progress phase</button>
+          {!readOnly ? <button className="btn" onClick={addNew}><Plus size={18} />Add progress phase</button> : null}
         </div>
         <table>
-          <thead><tr><th>Phase</th><th>Planned</th><th>Actual</th><th>Responsible</th><th>Status</th><th>Completion</th><th>Delay days</th><th>Actions</th></tr></thead>
-          <tbody>{project.phases.map((p: any) => <tr key={p.id}><td>{p.phase_name}</td><td>{p.planned_start_date} to {p.planned_completion_date}</td><td>{p.actual_start_date || "-"} to {p.actual_completion_date || "-"}</td><td>{p.responsible_person}</td><td><Badge status={p.status} /></td><td><div className="progress"><span style={{ width: `${p.completion_percentage}%` }} /></div>{p.completion_percentage}%</td><td>{p.delay_days}</td><td><div className="toolbar"><button className="btn secondary" onClick={() => edit(p)}><Edit2 size={16} />Edit</button><button className="btn danger" onClick={() => remove(p.id)}><Trash2 size={16} />Delete</button></div></td></tr>)}</tbody>
+          <thead><tr><th>Phase</th><th>Planned</th><th>Actual</th><th>Responsible</th><th>Status</th><th>Completion</th><th>Delay days</th>{!readOnly ? <th>Actions</th> : null}</tr></thead>
+          <tbody>{project.phases.map((p: any) => <tr key={p.id}><td>{p.phase_name}</td><td>{p.planned_start_date} to {p.planned_completion_date}</td><td>{p.actual_start_date || "-"} to {p.actual_completion_date || "-"}</td><td>{p.responsible_person}</td><td><Badge status={p.status} /></td><td><div className="progress"><span style={{ width: `${p.completion_percentage}%` }} /></div>{p.completion_percentage}%</td><td>{p.delay_days}</td>{!readOnly ? <td><div className="toolbar"><button className="btn secondary" onClick={() => edit(p)}><Edit2 size={16} />Edit</button><button className="btn danger" onClick={() => remove(p.id)}><Trash2 size={16} />Delete</button></div></td> : null}</tr>)}</tbody>
         </table>
       </div>
 
@@ -129,8 +129,8 @@ export default function PhaseEditor({ project, onRefresh }: { project: any; onRe
             </div>
             <div className="form-grid">
               <div className="field"><label>Phase name</label><select value={form.phase_name} onChange={(e) => selectPhase(e.target.value)}>{phaseOptions.map((phase) => <option key={phase}>{phase}</option>)}</select></div>
-              <div className="field"><label>Planned start</label><input className="input" type="date" value={form.planned_start_date || ""} readOnly /></div>
-              <div className="field"><label>Planned completion</label><input className="input" type="date" value={form.planned_completion_date || ""} readOnly /></div>
+              <div className="field"><label>Planned start</label><input className="input" type="date" value={form.planned_start_date || ""} onChange={(e) => set("planned_start_date", e.target.value)} /></div>
+              <div className="field"><label>Planned completion</label><input className="input" type="date" value={form.planned_completion_date || ""} onChange={(e) => set("planned_completion_date", e.target.value)} /></div>
               <div className="field"><label>Actual start</label><input className="input" type="date" value={form.actual_start_date || ""} onChange={(e) => set("actual_start_date", e.target.value)} /></div>
               <div className="field"><label>Actual completion</label><input className="input" type="date" value={form.actual_completion_date || ""} onChange={(e) => set("actual_completion_date", e.target.value)} /></div>
               <div className="field"><label>Responsible</label><input className="input" value={form.responsible_person || ""} onChange={(e) => set("responsible_person", e.target.value)} /></div>
