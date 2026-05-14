@@ -14,6 +14,7 @@ function getProject(id: number) {
     payments: rows<any>("select * from payment_terms where project_id = ? order by due_date", [id]),
     phases: rows<any>("select * from project_phases where project_id = ? order by id", [id]),
     documents: rows<any>("select * from project_documents where project_id = ? order by uploaded_at desc", [id]),
+    supplierDocuments: rows<any>("select * from supplier_documents where supplier_name = ? order by uploaded_at desc", [project.supplier_name || ""]),
     evaluation: row<any>("select * from supplier_evaluations where project_id = ?", [id]),
     activity: rows<any>(
       `select activity_logs.*, users.name as user_name

@@ -20,9 +20,15 @@ export async function GET(request: NextRequest) {
   const discovered = rows<any>(`
     select
       projects.supplier_name as name,
+      '' as arabic_name,
       '' as contact_person,
       '' as email,
       '' as phone,
+      '' as secondary_phone,
+      '' as vat_number,
+      '' as cr_number,
+      '' as national_address,
+      0 as has_whatsapp,
       '' as category,
       '' as notes,
       null as created_at,
@@ -43,13 +49,31 @@ export async function POST(request: NextRequest) {
   if ("error" in auth) return auth.error;
   if (auth.user.role !== "Admin" && auth.user.role !== "Data Entry") return json({ error: "Forbidden" }, 403);
   const body = await request.json();
-  if (!body.name) return json({ error: "Supplier name is required" }, 400);
+  if (!body.name || !body.contact_person || !body.phone || !body.vat_number || !body.cr_number) {
+    return json({ error: "Name, VAT, CR, contact person, and mobile number are required" }, 400);
+  }
   const result = run(
-    `insert into suppliers (name, contact_person, email, phone, category, notes)
-     values (?, ?, ?, ?, ?, ?)
-     on conflict(name) do update set contact_person=excluded.contact_person, email=excluded.email,
-       phone=excluded.phone, category=excluded.category, notes=excluded.notes`,
-    [body.name, body.contact_person || "", body.email || "", body.phone || "", body.category || "", body.notes || ""]
+    `insert into suppliers
+     (name, arabic_name, contact_person, email, phone, secondary_phone, vat_number, cr_number, national_address, has_whatsapp, category, notes)
+     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     on conflict(name) do update set arabic_name=excluded.arabic_name, contact_person=excluded.contact_person,
+       email=excluded.email, phone=excluded.phone, secondary_phone=excluded.secondary_phone,
+       vat_number=excluded.vat_number, cr_number=excluded.cr_number, national_address=excluded.national_address,
+       has_whatsapp=excluded.has_whatsapp, category=excluded.category, notes=excluded.notes`,
+    [
+      body.name,
+      body.arabic_name || "",
+      body.contact_person || "",
+      body.email || "",
+      body.phone || "",
+      body.secondary_phone || "",
+      body.vat_number || "",
+      body.cr_number || "",
+      body.national_address || "",
+      body.has_whatsapp ? 1 : 0,
+      body.category || "",
+      body.notes || ""
+    ]
   );
   logActivity({ userId: auth.user.id, action: "Supplier saved", module: "Suppliers", newValue: body });
   return json({ id: result.lastInsertRowid || null }, 201);

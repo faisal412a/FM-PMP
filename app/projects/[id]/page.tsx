@@ -18,7 +18,10 @@ export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const [project, setProject] = useState<any>(null);
+  const [role, setRole] = useState("");
   const [tab, setTab] = useState(tabs[0]);
+  const visibleTabs = role === "Management" ? ["Overview", "Payment Schedule", "Progress Tracker", "Documents"] : tabs;
+  const readOnly = role === "Management";
   async function load() {
     const res = await fetch(`/api/projects/${params.id}`);
     if (res.status === 401) location.assign("/login");
@@ -26,6 +29,12 @@ export default function ProjectDetailPage() {
     setProject(body.project);
   }
   useEffect(() => { load(); }, [params.id]);
+  useEffect(() => {
+    fetch("/api/auth/me").then((res) => res.ok ? res.json() : null).then((body) => setRole(body?.user?.role || ""));
+  }, []);
+  useEffect(() => {
+    if (visibleTabs.length && !visibleTabs.includes(tab)) setTab(visibleTabs[0]);
+  }, [role, tab]);
   async function remove() {
     if (!confirm("Delete this project and all related records?")) return;
     const res = await fetch(`/api/projects/${params.id}`, { method: "DELETE" });
@@ -41,9 +50,9 @@ export default function ProjectDetailPage() {
           <h1 className="page-title">{project.name}</h1>
           <div className="muted">{project.project_number} · {project.client_name} · <Badge status={project.status} /></div>
         </div>
-        <button className="btn danger" onClick={remove}><Trash2 size={18} />Delete</button>
+        {!readOnly ? <button className="btn danger" onClick={remove}><Trash2 size={18} />Delete</button> : null}
       </div>
-      <div className="tabs">{tabs.map((item) => <button key={item} className={item === tab ? "active" : ""} onClick={() => setTab(item)}>{item}</button>)}</div>
+      <div className="tabs">{visibleTabs.map((item) => <button key={item} className={item === tab ? "active" : ""} onClick={() => setTab(item)}>{item}</button>)}</div>
 
       {tab === "Overview" ? (
         <div className="grid">
@@ -54,7 +63,7 @@ export default function ProjectDetailPage() {
             <div className="card"><div className="kpi-label">Balance</div><div className="kpi-value">{money(project.summary.balance)}</div></div>
             <div className="card"><div className="kpi-label">Delay days</div><div className="kpi-value">{project.summary.delayDays}</div></div>
           </div>
-          <ProjectForm initial={project} onSaved={load} />
+          <ProjectForm initial={project} onSaved={load} readOnly={readOnly} />
         </div>
       ) : null}
 
@@ -62,12 +71,12 @@ export default function ProjectDetailPage() {
         <QuotePoInvoiceEditor project={project} onRefresh={load} />
       ) : null}
 
-      {tab === "Payment Schedule" ? <PaymentEditor project={project} onRefresh={load} /> : null}
-      {tab === "Progress Tracker" ? <PhaseEditor project={project} onRefresh={load} /> : null}
+      {tab === "Payment Schedule" ? <PaymentEditor project={project} onRefresh={load} readOnly={readOnly} /> : null}
+      {tab === "Progress Tracker" ? <PhaseEditor project={project} onRefresh={load} readOnly={readOnly} /> : null}
       {tab === "Supplier Evaluation" ? <EvaluationForm project={project} onRefresh={load} /> : null}
 
       {tab === "Documents" ? (
-        <DocumentUploadPanel project={project} onRefresh={load} />
+        <DocumentUploadPanel project={project} onRefresh={load} readOnly={readOnly} />
       ) : null}
 
       {tab === "Activity Log" ? (
