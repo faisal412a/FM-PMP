@@ -31,7 +31,7 @@ export default function LoginPage() {
     <main className="login-page">
       <form className="panel login-card" onSubmit={submit}>
         <div className="login-brand">
-          <img src="/faden-primary.png" alt="Faden Media" />
+          <img src="/faden-login.png" alt="Faden Media" />
           <h1>Faden PMS</h1>
         </div>
         <p className="muted">Sign in with one of the seeded demo accounts.</p>

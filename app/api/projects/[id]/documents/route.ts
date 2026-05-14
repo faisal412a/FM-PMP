@@ -1,9 +1,27 @@
 import fs from "node:fs";
 import path from "node:path";
 import { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { json, requireUser } from "@/lib/api";
 import { logActivity, row, rows, run } from "@/lib/db";
 import { safeFileName, uploadDir } from "@/lib/storage";
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = requireUser(request, "project:read");
+  if ("error" in auth) return auth.error;
+  const { id } = await params;
+  const projectId = Number(id);
+  const documentId = Number(request.nextUrl.searchParams.get("documentId"));
+  const doc = row<any>("select * from project_documents where id = ? and project_id = ?", [documentId, projectId]);
+  if (!doc || !doc.file_path || !fs.existsSync(doc.file_path)) return json({ error: "Document not found" }, 404);
+  const file = fs.readFileSync(doc.file_path);
+  return new NextResponse(file, {
+    headers: {
+      "Content-Type": "application/octet-stream",
+      "Content-Disposition": `inline; filename="${encodeURIComponent(doc.file_name)}"`
+    }
+  });
+}
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = requireUser(request, "document:write");

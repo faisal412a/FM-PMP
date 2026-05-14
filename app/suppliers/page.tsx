@@ -61,7 +61,7 @@ export default function SuppliersPage() {
     try {
       await uploadSupplierDocuments(form.name);
     } catch (error: any) {
-      alert(error.message);
+      alert(`Supplier saved, but document upload failed: ${error.message}`);
       return;
     }
     setForm(emptySupplier);
@@ -153,6 +153,11 @@ export default function SuppliersPage() {
               <FileUploadButton label="Upload CR" onFiles={(files) => addDocs("CR", files)} />
               <FileUploadButton label="Upload VAT" onFiles={(files) => addDocs("VAT", files)} />
               <FileUploadButton label="Upload National Address" onFiles={(files) => addDocs("National Address", files)} />
+            </div>
+            <div className="upload-list">
+              {Object.entries(documents).map(([type, files]) => files.length ? (
+                <div className="upload-row" key={type}><span>{type}</span><span>{files.map((file) => file.name).join(", ")}</span></div>
+              ) : null)}
             </div>
             <p className="muted">Upload supplier CR, VAT & National Address before proceeding with PO.</p>
             <button className="btn" style={{ marginTop: 14 }}><Save size={18} />Save supplier</button>
